@@ -1,0 +1,26 @@
+Mail mod for Minetest
+=====================
+
+This mod adds a system to Minetest that allows players to send each other messages within the game. Unlike chat messages or /msgs, these can be sent to an offline player and will still be present the next time they join.
+
+License: See the "LICENSE" file
+
+Dependencies: None, but will integrate with unified_inventory if it is present.
+
+Crafting: N/A
+
+Instructions:
+
+The inbox can be accessed by using the /mail command or by pressing the "Mail" button in unified_inventory if that mod is installed. In that window, all messages that the player currently has have the sender and subject (truncated if necessary) shown in a list. Unread messages are shown in red, while read messages are shown in white. The "Mark Read" and "Mark Unread" buttons will change this status, as well as viewing the message.
+
+To view a message, either single-click on it and press "Read", or just double-click on it. A window will then open showing the sender, subject, and body of the message, with a button to return to the inbox.
+
+Single-clicking a message and pressing the "delete" button will remove the message from the inbox.
+
+The compose window can be opened by pressing the "New Message" button in the inbox. This opens a window where the recipient, subject, and body can be entered, along with buttons to cancel or send the message. Since messages can be sent to any name, including ones that have not yet joined the server for the first time, there is no validation to ensure that the recipient exists.
+
+If a message is sent to a player that is currently online, they will see a notification in the chat that a message has arrived, along with the sender and subject (truncated if necessary) of the message and a brief reminder that they can use the /mail command (or the mail button, if applicable) to view the message.
+
+If a player has unread messages in their inbox when they join, a notification will appear to notify them of this. It offers the option to either go to the inbox now, or not. If they choose not to, a reminder is shown in the chat to remind them that they can use the /mail command (or the mail button, if applicable) to view the message(s) later.
+
+All activity (sending messages, marking them as read/unread, deleting them, etc.) is immediately saved to a file called "mail.db" in the world directory. This file is then read at server startup. If an error occurs while saving this file, a message is printed in the server logs.
