@@ -27,9 +27,11 @@ mail.inboxformspec =    "size[8,9;]"..
 			"button_exit[7.5,0;0.5,0.5;quit;X]"..
 			"button[6.25,1;1.5,0.5;new;New Message]"..
 			"button[6.25,2;1.5,0.5;read;Read]"..
-			"button[6.25,3;1.5,0.5;delete;Delete]"..
-			"button[6.25,4;1.5,0.5;markread;Mark Read]"..
-			"button[6.25,5;1.5,0.5;markunread;Mark Unread]"..
+			"button[6.25,3;1.5,0.5;reply;Reply]"..
+			"button[6.25,4;1.5,0.5;forward;Forward]"..
+			"button[6.25,5;1.5,0.5;delete;Delete]"..
+			"button[6.25,6;1.5,0.5;markread;Mark Read]"..
+			"button[6.25,7;1.5,0.5;markunread;Mark Unread]"..
 			"button[6.25,8;1.5,0.5;about;About]"..
 			"textlist[0,0.5;6,8.5;message;"	
 
@@ -90,7 +92,7 @@ end
 
 function mail.showmessage(name,msgnumber)
 	local message = mail.messages[name][msgnumber]
-	local formspec = "size[8,6]label[0,0;From: %s]label[0,0.5;Subject: %s]textarea[0.25,1;8,4;body;;%s]button[1,5;2,1;back;Back]button[3,5;2,1;reply;Reply]button[5,5;2,1;delete;Delete]"
+	local formspec = "size[8,6]button[7.5,0;0.5,0.5;back;X]label[0,0;From: %s]label[0,0.5;Subject: %s]textarea[0.25,1;8,4;body;;%s]button[1,5;2,1;reply;Reply]button[3,5;2,1;forward;Forward]button[5,5;2,1;delete;Delete]"
 	local sender = minetest.formspec_escape(message.sender)
 	local subject = minetest.formspec_escape(message.subject)
 	local body = minetest.formspec_escape(message.body)
@@ -126,6 +128,14 @@ minetest.register_on_player_receive_fields(function(player,formname,fields)
 			if mail.messages[name][mail.highlightedmessages[name]] then table.remove(mail.messages[name],mail.highlightedmessages[name]) end
 			mail.showinbox(name)
 			mail.save()
+		elseif fields.reply and mail.messages[name][mail.highlightedmessages[name]] then
+			local message = mail.messages[name][mail.highlightedmessages[name]]
+			local replyfooter = "Type your reply here."..string.char(10)..string.char(10).."--Original message follows--"..string.char(10)..message.body
+			mail.showcompose(name,message.sender,"Re: "..message.subject,replyfooter)
+		elseif fields.forward and mail.messages[name][mail.highlightedmessages[name]] then
+			local message = mail.messages[name][mail.highlightedmessages[name]]
+			local fwfooter = "Type your message here."..string.char(10)..string.char(10).."--Original message follows--"..string.char(10)..message.body
+			mail.showcompose(name,"","Fw: "..message.subject,fwfooter)
 		elseif fields.markread then
 			if mail.messages[name][mail.highlightedmessages[name]] then mail.messages[name][mail.highlightedmessages[name]].unread = false end
 			mail.showinbox(name)
@@ -152,6 +162,10 @@ minetest.register_on_player_receive_fields(function(player,formname,fields)
 			local message = mail.messages[name][mail.highlightedmessages[name]]
 			local replyfooter = "Type your reply here."..string.char(10)..string.char(10).."--Original message follows--"..string.char(10)..message.body
 			mail.showcompose(name,message.sender,"Re: "..message.subject,replyfooter)
+		elseif fields.forward then
+			local message = mail.messages[name][mail.highlightedmessages[name]]
+			local fwfooter = "Type your message here."..string.char(10)..string.char(10).."--Original message follows--"..string.char(10)..message.body
+			mail.showcompose(name,"","Fw: "..message.subject,fwfooter)
 		elseif fields.delete then
 			if mail.messages[name][mail.highlightedmessages[name]] then table.remove(mail.messages[name],mail.highlightedmessages[name]) end
 			mail.showinbox(name)
