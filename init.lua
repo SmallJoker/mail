@@ -50,7 +50,7 @@ end
 
 function mail.showabout(name)
 	local formspec =        "size[4,5;]"..
-				"button[3,0;1,1;back;Back]"..
+				"button[3.5,0;0.5,0.5;back;X]"..
 				"label[0,0;Mail]"..
 				"label[0,0.5;By cheapie]"..
 				"label[0,1;http://github.com/cheapie/mail]"..
@@ -101,7 +101,7 @@ function mail.showmessage(name,msgnumber)
 end
 
 function mail.showcompose(name,defaulttgt,defaultsubj,defaultbody)
-	local formspec = "size[8,8]field[0.25,0.5;4,1;to;To:;%s]field[0.25,1.5;4,1;subject;Subject:;%s]textarea[0.25,2.5;8,4;body;;%s]button[1,7;2,1;cancel;Cancel]button[5,7;2,1;send;Send]"
+	local formspec = "size[8,8]field[0.25,0.5;4,1;to;To:;%s]field[0.25,1.5;4,1;subject;Subject:;%s]textarea[0.25,2.5;8,4;body;;%s]button[1,7;2,1;cancel;Cancel]button[7.5,0;0.5,0.5;cancel;X]button[5,7;2,1;send;Send]"
 	formspec = string.format(formspec,minetest.formspec_escape(defaulttgt),minetest.formspec_escape(defaultsubj),minetest.formspec_escape(defaultbody))
 	minetest.show_formspec(name,"mail:compose",formspec)
 end
