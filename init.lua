@@ -169,6 +169,7 @@ minetest.register_on_player_receive_fields(function(player,formname,fields)
 		elseif fields.delete then
 			if mail.messages[name][mail.highlightedmessages[name]] then table.remove(mail.messages[name],mail.highlightedmessages[name]) end
 			mail.showinbox(name)
+			mail.save()
 		end
 		return true
 	elseif formname == "mail:compose" then
