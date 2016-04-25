@@ -13,7 +13,7 @@ Instructions:
 
 The inbox can be accessed by using the /mail command or by pressing the "Mail" button in unified_inventory if that mod is installed. In that window, all messages that the player currently has have the sender and subject (truncated if necessary) shown in a list. Unread messages are shown in red, while read messages are shown in white. The "Mark Read" and "Mark Unread" buttons will change this status, as well as viewing the message.
 
-To view a message, either single-click on it and press "Read", or just double-click on it. A window will then open showing the sender, subject, and body of the message, with a button to return to the inbox.
+To view a message, either single-click on it and press "Read", or just double-click on it. A window will then open showing the sender, subject, and body of the message, with buttons to return to the inbox, reply to the message, or delete it.
 
 Single-clicking a message and pressing the "delete" button will remove the message from the inbox.
 

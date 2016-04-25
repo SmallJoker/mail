@@ -75,7 +75,7 @@ end
 
 function mail.showmessage(name,msgnumber)
 	local message = mail.messages[name][msgnumber]
-	local formspec = "size[8,6]label[0,0;From: %s]label[0,0.5;Subject: %s]textarea[0.25,1;8,4;body;;%s]button[3,5;2,1;back;Back]"
+	local formspec = "size[8,6]label[0,0;From: %s]label[0,0.5;Subject: %s]textarea[0.25,1;8,4;body;;%s]button[1,5;2,1;back;Back]button[3,5;2,1;reply;Reply]button[5,5;2,1;delete;Delete]"
 	local sender = minetest.formspec_escape(message.sender)
 	local subject = minetest.formspec_escape(message.subject)
 	local body = minetest.formspec_escape(message.body)
@@ -85,7 +85,7 @@ end
 
 function mail.showcompose(name,defaulttgt,defaultsubj,defaultbody)
 	local formspec = "size[8,8]field[0.25,0.5;4,1;to;To:;%s]field[0.25,1.5;4,1;subject;Subject:;%s]textarea[0.25,2.5;8,4;body;;%s]button[1,7;2,1;cancel;Cancel]button[5,7;2,1;send;Send]"
-	formspec = string.format(formspec,defaulttgt,defaultsubj,defaultbody)
+	formspec = string.format(formspec,minetest.formspec_escape(defaulttgt),minetest.formspec_escape(defaultsubj),minetest.formspec_escape(defaultbody))
 	minetest.show_formspec(name,"mail:compose",formspec)
 end
 
@@ -126,7 +126,17 @@ minetest.register_on_player_receive_fields(function(player,formname,fields)
 		end
 		return true
 	elseif formname == "mail:message" then
-		mail.showinbox(player:get_player_name())
+		local name = player:get_player_name()
+		if fields.back then
+			mail.showinbox(name)
+		elseif fields.reply then
+			local message = mail.messages[name][mail.highlightedmessages[name]]
+			local replyfooter = "Type your reply here."..string.char(10)..string.char(10).."--Original message follows--"..string.char(10)..message.body
+			mail.showcompose(name,message.sender,"Re: "..message.subject,replyfooter)
+		elseif fields.delete then
+			if mail.messages[name][mail.highlightedmessages[name]] then table.remove(mail.messages[name],mail.highlightedmessages[name]) end
+			mail.showinbox(name)
+		end
 		return true
 	elseif formname == "mail:compose" then
 		if fields.send then
