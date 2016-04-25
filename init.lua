@@ -30,6 +30,7 @@ mail.inboxformspec =    "size[8,9;]"..
 			"button[6.25,3;1.5,0.5;delete;Delete]"..
 			"button[6.25,4;1.5,0.5;markread;Mark Read]"..
 			"button[6.25,5;1.5,0.5;markunread;Mark Unread]"..
+			"button[6.25,8;1.5,0.5;about;About]"..
 			"textlist[0,0.5;6,8.5;message;"	
 
 function mail.send(src,dst,subject,body)
@@ -43,6 +44,20 @@ function mail.send(src,dst,subject,body)
 		end
 	end
 	mail.save()
+end
+
+function mail.showabout(name)
+	local formspec =        "size[4,5;]"..
+				"button[3,0;1,1;back;Back]"..
+				"label[0,0;Mail]"..
+				"label[0,0.5;By cheapie]"..
+				"label[0,1;http://github.com/cheapie/mail]"..
+				"label[0,1.5;See LICENSE file for license information]"..
+				"label[0,2.5;NOTE: Communication using this system]"..
+				"label[0,3;is NOT guaranteed to be private!]"..
+				"label[0,3.5;Admins are able to view the messages]"..
+				"label[0,4;of any player.]"
+	minetest.show_formspec(name,"mail:about",formspec)
 end
 
 function mail.showinbox(name)
@@ -90,7 +105,9 @@ function mail.showcompose(name,defaulttgt,defaultsubj,defaultbody)
 end
 
 minetest.register_on_player_receive_fields(function(player,formname,fields)
-	if formname == "mail:inbox" then
+	if formname == "mail:about" then
+		mail.showinbox(player:get_player_name())
+	elseif formname == "mail:inbox" then
 		local name = player:get_player_name()
 		if fields.message then
 			local event = minetest.explode_textlist_event(fields.message)
@@ -123,6 +140,8 @@ minetest.register_on_player_receive_fields(function(player,formname,fields)
 			if minetest.get_modpath("unified_inventory") then
 				unified_inventory.set_inventory_formspec(player, "craft")
 			end
+		elseif fields.about then
+			mail.showabout(name)
 		end
 		return true
 	elseif formname == "mail:message" then
