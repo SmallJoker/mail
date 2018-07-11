@@ -83,6 +83,10 @@ function mail.showinbox(name)
 				formspec = formspec .. "(No subject)"
 			end
 		end
+		if mail.messages[name][mail.highlightedmessages[name]] then
+			-- Visually select last selected message if existent
+			formspec = formspec .. ";" .. mail.highlightedmessages[name]
+		end
 		formspec = formspec .. "]label[0,0;Welcome! You've got mail!]"
 	else
 		formspec = formspec .. "No mail :(]label[0,0;Welcome!]"
@@ -107,41 +111,60 @@ function mail.showcompose(name,defaulttgt,defaultsubj,defaultbody)
 end
 
 minetest.register_on_player_receive_fields(function(player,formname,fields)
+	if not formname:find("mail:") and formname ~= "" then
+		return
+	end
+
+	local name = player:get_player_name()
 	if formname == "mail:about" then
-		mail.showinbox(player:get_player_name())
+		mail.showinbox(name)
+		return true
 	elseif formname == "mail:inbox" then
-		local name = player:get_player_name()
+		local messages = mail.messages[name] or {}
+		local selected = mail.highlightedmessages[name]
 		if fields.message then
 			local event = minetest.explode_textlist_event(fields.message)
-			mail.highlightedmessages[name] = event.index
-			if event.type == "DCL" and mail.messages[name][mail.highlightedmessages[name]] then
-				mail.messages[name][mail.highlightedmessages[name]].unread = false
-				mail.showmessage(name,mail.highlightedmessages[name])
+			if messages[event.index] then
+				mail.highlightedmessages[name] = event.index
+				selected = mail.highlightedmessages[name]
+				if event.type == "DCL" then
+					messages[selected].unread = false
+					mail.showmessage(name, selected)
+				end
 			end
 		end
+		print("dumP: " ..dump(messages) .. " " .. dump(selected))
 		if fields.read then
-			if mail.messages[name][mail.highlightedmessages[name]] then
-				mail.messages[name][mail.highlightedmessages[name]].unread = false
-				mail.showmessage(name,mail.highlightedmessages[name])
+			if messages[selected] then
+				messages[selected].unread = false
+				mail.showmessage(name, selected)
 			end
 		elseif fields.delete then
-			if mail.messages[name][mail.highlightedmessages[name]] then table.remove(mail.messages[name],mail.highlightedmessages[name]) end
+			if messages[selected] then
+				table.remove(messages, selected)
+			end
 			mail.showinbox(name)
 			mail.save()
-		elseif fields.reply and mail.messages[name][mail.highlightedmessages[name]] then
-			local message = mail.messages[name][mail.highlightedmessages[name]]
-			local replyfooter = "Type your reply here."..string.char(10)..string.char(10).."--Original message follows--"..string.char(10)..message.body
+		elseif fields.reply and messages[selected] then
+			local message = messages[selected]
+			local replyfooter = "Type your reply here."..string.char(10)..string.char(10)
+				.."--Original message follows--"..string.char(10)..message.body
 			mail.showcompose(name,message.sender,"Re: "..message.subject,replyfooter)
-		elseif fields.forward and mail.messages[name][mail.highlightedmessages[name]] then
-			local message = mail.messages[name][mail.highlightedmessages[name]]
-			local fwfooter = "Type your message here."..string.char(10)..string.char(10).."--Original message follows--"..string.char(10)..message.body
+		elseif fields.forward and messages[selected] then
+			local message = messages[selected]
+			local fwfooter = "Type your message here."..string.char(10)..string.char(10)
+				.."--Original message follows--"..string.char(10)..message.body
 			mail.showcompose(name,"","Fw: "..message.subject,fwfooter)
 		elseif fields.markread then
-			if mail.messages[name][mail.highlightedmessages[name]] then mail.messages[name][mail.highlightedmessages[name]].unread = false end
+			if messages[selected] then
+				messages[selected].unread = false
+			end
 			mail.showinbox(name)
 			mail.save()
 		elseif fields.markunread then
-			if mail.messages[name][mail.highlightedmessages[name]] then mail.messages[name][mail.highlightedmessages[name]].unread = true end
+			if messages[selected] then
+				messages[selected].unread = true
+			end
 			mail.showinbox(name)
 			mail.save()
 		elseif fields.new then
@@ -155,40 +178,46 @@ minetest.register_on_player_receive_fields(function(player,formname,fields)
 		end
 		return true
 	elseif formname == "mail:message" then
-		local name = player:get_player_name()
+		local messages = mail.messages[name]
+		local selected = mail.highlightedmessages[name]
+
 		if fields.back then
 			mail.showinbox(name)
-		elseif fields.reply then
-			local message = mail.messages[name][mail.highlightedmessages[name]]
-			local replyfooter = "Type your reply here."..string.char(10)..string.char(10).."--Original message follows--"..string.char(10)..message.body
+		elseif fields.reply and messages[selected] then
+			local message = messages[selected]
+			local replyfooter = "Type your reply here."..string.char(10)..string.char(10)
+				.."--Original message follows--"..string.char(10)..message.body
 			mail.showcompose(name,message.sender,"Re: "..message.subject,replyfooter)
-		elseif fields.forward then
-			local message = mail.messages[name][mail.highlightedmessages[name]]
-			local fwfooter = "Type your message here."..string.char(10)..string.char(10).."--Original message follows--"..string.char(10)..message.body
+		elseif fields.forward and messages[selected] then
+			local message = messages[selected]
+			local fwfooter = "Type your message here."..string.char(10)..string.char(10)
+				.."--Original message follows--"..string.char(10)..message.body
 			mail.showcompose(name,"","Fw: "..message.subject,fwfooter)
 		elseif fields.delete then
-			if mail.messages[name][mail.highlightedmessages[name]] then table.remove(mail.messages[name],mail.highlightedmessages[name]) end
+			if messages[selected] then
+				table.remove(messages, selected)
+			end
 			mail.showinbox(name)
 			mail.save()
 		end
 		return true
 	elseif formname == "mail:compose" then
-		if fields.send then
-			mail.send(player:get_player_name(),fields.to,fields.subject,fields.body)
+		if fields.send and fields.to and fields.subject and fields.body then
+			mail.send(name, fields.to, fields.subject, fields.body)
 		end
-		mail.showinbox(player:get_player_name())
+		mail.showinbox(name)
 		return true
 	elseif formname == "mail:unreadnag" then
 		if fields.yes then
-			mail.showinbox(player:get_player_name())
+			mail.showinbox(name)
 		else
-			minetest.chat_send_player(player:get_player_name(),"You can use the /mail command" .. (minetest.get_modpath("unified_inventory") and " or the mail button in the inventory " or " ") .. "to read your messages later.")
+			minetest.chat_send_player(name, "You can use the /mail command"
+				.. (minetest.get_modpath("unified_inventory") and " or the mail button in the inventory " or " ")
+				.. "to read your messages later.")
 		end
 		return true
 	elseif fields.mail then
-		mail.showinbox(player:get_player_name())
-	else
-		return false
+		mail.showinbox(name)
 	end
 end)
 	
@@ -209,18 +238,24 @@ minetest.register_chatcommand("mail",{
 )
 
 minetest.register_on_joinplayer(function(player)
-	minetest.after(0,function(player)
-		local name = player:get_player_name()
+	minetest.after(0,function(name)
 		local unreadflag = false
 		if mail.messages[name] then
 			for _,message in ipairs(mail.messages[name]) do
-				if message.unread then unreadflag = true end
+				if message.unread then
+					unreadflag = true
+					break
+				 end
 			end
 		end
 		if unreadflag then
-			minetest.show_formspec(name,"mail:unreadnag","size[3,2]label[0,0;You have unread messages in your inbox.]label[0,0.5;Go there now?]button[0.5,0.75;2,1;yes;Yes]button_exit[0.5,1.5;2,1;no;No]")
+			minetest.show_formspec(name, "mail:unreadnag",
+				"size[3,2]label[0,0;You have unread messages in your inbox.]"
+				.. "label[0,0.5;Go there now?]"
+				.. "button[0.5,0.75;2,1;yes;Yes]"
+				.. "button_exit[0.5,1.5;2,1;no;No]")
 		end
-	end,player)
+	end, player:get_player_name())
 end)
 
 mail.load()
